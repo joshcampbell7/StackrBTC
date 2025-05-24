@@ -27,11 +27,20 @@ export function RegisterForm({
                     <form>
                         <div className="flex flex-col gap-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Firstname</Label>
+                                <Label htmlFor="firstName">Firstname</Label>
                                 <Input
                                     id="firstname"
                                     type="firstname"
                                     placeholder="Joshua"
+                                    required
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="userName">Username</Label>
+                                <Input
+                                    id="username"
+                                    type="username"
+                                    placeholder="yzyfoams"
                                     required
                                 />
                             </div>

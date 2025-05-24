@@ -3,7 +3,19 @@ import { Button } from "@/components/ui/button"
 import Login from "./authentication/login"
 import Home from "./Home"
 import Register from "./authentication/register"
+import Dashboard from "./dashboard/dashboard"
+import { Amplify } from "aws-amplify"
+import { awsExports } from "./aws-exports"
 
+
+Amplify.configure({
+  Auth: {
+    Cognito: {
+      userPoolId: awsExports.USER_POOL_ID,
+      userPoolClientId: awsExports.USER_POOL_CLIENT_ID,
+    }
+  }
+});
 
 
 function App() {
@@ -13,6 +25,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </Router>
   )
