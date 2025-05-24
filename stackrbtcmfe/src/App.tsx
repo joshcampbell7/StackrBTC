@@ -6,6 +6,7 @@ import Register from "./authentication/register"
 import Dashboard from "./dashboard/dashboard"
 import { Amplify } from "aws-amplify"
 import { awsExports } from "./aws-exports"
+import Page from "./dashboard/page"
 
 
 Amplify.configure({
@@ -25,7 +26,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Page />} />
       </Routes>
     </Router>
   )
