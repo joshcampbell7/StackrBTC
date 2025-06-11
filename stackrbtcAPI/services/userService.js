@@ -1,50 +1,156 @@
 const User = require("../models/User");
-const { db, collection, addDoc, getDocs } = require("../config/firebase");
+const userRepo = require("../repos/userRepo");
+const utils = require("../utils/utils");
+const pool = require("../config/mysql");
 
 const userService = {
   getUser: () => new User(1, "John Doe", "john@doe.com", "password1"),
+
   addUser: async (username, email, password) => {
     try {
-      const newUser = {
-        username,
-        email,
-        password, // Ideally, hash this before storing
+      const existingEmail = await userRepo.getUserByEmail(email);
+      if (existingEmail) {
+        return { 
+          success: false, 
+          error: "EMAIL_IN_USE", 
+          message: "Email already in use",
+          statusCode: 409 // Conflict
+        };
+      }
+
+      const existingUsername = await userRepo.getUserByUsername(username);
+      if (existingUsername) {
+        return { 
+          success: false, 
+          error: "USERNAME_IN_USE", 
+          message: "Username already in use",
+          statusCode: 409 // Conflict
+        };
+      }
+
+      const hashedPassword = await utils.hashPassword(password);
+      const userData = await userRepo.addUser(username, email, hashedPassword);
+
+      if (!userData) {
+        return { 
+          success: false, 
+          error: "USER_CREATION_FAILED", 
+          message: "Unable to add user",
+          statusCode: 500 // Internal Server Error
+        };
+      }
+
+      const newUser = new User(userData.userId, userData.username, userData.email, userData.password);
+      return { 
+        success: true, 
+        data: newUser,
+        message: "User created successfully",
+        statusCode: 201 // Created
       };
 
-      // Add to Firestore
-      const docRef = await addDoc(collection(db, "users"), newUser);
-
-      console.log("User added with ID:", docRef.id);
-      return { id: docRef.id, ...newUser };
     } catch (error) {
       console.error("Error adding user:", error);
-      throw new Error("Failed to add user");
+      return { 
+        success: false, 
+        error: "INTERNAL_ERROR", 
+        message: "Failed to add user due to server error",
+        statusCode: 500
+      };
     }
   },
-  getUsers: async (fields) => {
+
+  getUsers: async (fields = []) => {
     try {
-      const usersCollection = collection(db, "users");
-      const snapshot = await getDocs(usersCollection);
+      const [rows] = await pool.execute(
+        fields && fields.length > 0
+          ? `SELECT ${["userId", ...fields].join(", ")} FROM users`
+          : `SELECT * FROM users`
+      );
 
-      // Map through the documents and select only the requested fields
-      const users = snapshot.docs.map((doc) => {
-        const userData = doc.data();
-        const filteredData = { id: doc.id }; // Always include the `id` field
+      const users = rows.map(
+        (row) => new User(row.userId, row.username, row.email, row.password)
+      );
 
-        // Include only the fields passed in the `fields` array
-        fields.forEach((field) => {
-          if (userData[field] !== undefined) {
-            filteredData[field] = userData[field];
-          }
-        });
-
-        return filteredData;
-      });
-
-      return users;
+      return { 
+        success: true, 
+        data: users,
+        statusCode: 200 // OK
+      };
     } catch (error) {
       console.error("Error fetching users:", error);
-      throw new Error("Failed to fetch users");
+      return { 
+        success: false, 
+        error: "FETCH_USERS_FAILED", 
+        message: "Failed to fetch users",
+        statusCode: 500
+      };
+    }
+  },
+
+  getUserByUserId: async (userId) => {
+    try {
+      const user = await userRepo.getUserByUserId(userId);
+      if (!user) {
+        return { 
+          success: false, 
+          error: "USER_NOT_FOUND", 
+          message: "User not found",
+          statusCode: 404
+        };
+      }
+      return { 
+        success: true, 
+        data: user,
+        statusCode: 200
+      };
+    } catch (error) {
+      console.error("Error fetching user by userId:", error);
+      return { 
+        success: false, 
+        error: "FETCH_USER_FAILED", 
+        message: "Failed to fetch user",
+        statusCode: 500
+      };
+    }
+  },
+
+    validateLogin: async ({email,password}) => {
+    try {
+      const user = await userRepo.getUserByEmail(email);
+      if (!user) {
+        return { 
+          success: false, 
+          error: "USER_NOT_FOUND", 
+          message: "User not found",
+          statusCode: 404
+        };
+      }
+      // code here to validate pwd, if invalid then return error if true then return JSON
+
+
+    const isMatch = await utils.isPasswordMatch(password, user.password);
+    if (isMatch) {
+      console.log("in password match");
+      return { 
+        success: true, 
+        data: user,
+        statusCode: 200
+      };
+    }
+
+        return { 
+          success: false, 
+          message: "Password do not match",
+          statusCode: 401
+      };
+    } catch (error) {
+      console.error("Error fetching user by userId:", error);
+      return { 
+        success: false, 
+        error: "FETCH_USER_FAILED", 
+        message: "Failed to fetch user",
+        statusCode: 500
+      };
     }
   },
 };
