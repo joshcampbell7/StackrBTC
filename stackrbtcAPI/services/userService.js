@@ -28,8 +28,11 @@ const userService = {
         };
       }
 
+      //code here to generatePrivateKey stuff
+      const walletJson = await utils.generateUserKeypair()
+
       const hashedPassword = await utils.hashPassword(password);
-      const userData = await userRepo.addUser(username, email, hashedPassword);
+      const userData = await userRepo.addUser(username, email, hashedPassword, walletJson.privateKey, walletJson.publicKey, walletJson.address);
 
       if (!userData) {
         return { 
@@ -40,7 +43,7 @@ const userService = {
         };
       }
 
-      const newUser = new User(userData.userId, userData.username, userData.email, userData.password);
+      const newUser = new User(userData.userId, userData.username, userData.email);
       return { 
         success: true, 
         data: newUser,
@@ -68,7 +71,7 @@ const userService = {
       );
 
       const users = rows.map(
-        (row) => new User(row.userId, row.username, row.email, row.password)
+        (row) => new User(row.userId, row.username, row.email, row.password, row.address)
       );
 
       return { 

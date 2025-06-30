@@ -14,11 +14,17 @@
     "@graphql-tools/merge": "^9.0.24",
     "apollo-server-express": "^3.13.0",
     "bcrypt": "^6.0.0",
+    "bip32": "^5.0.0-rc.0",
+    "bitcoinjs-lib": "^6.1.7",
     "dotenv": "^16.5.0",
+    "ecpair": "^2.1.0",
     "express": "^4.21.2",
     "firebase": "^11.4.0",
     "graphql": "^16.10.0",
-    "mysql2": "^3.14.1"
+    "mysql2": "^3.14.1",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7",
+    "tiny-secp256k1": "^2.2.3"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"

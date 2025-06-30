@@ -1,6 +1,7 @@
 "use client"
 
-import { IconTrendingUp, IconTrendingDown, IconUser, IconWallet, IconCurrencyBitcoin } from "@tabler/icons-react"
+import { useEffect, useState } from "react"
+import { IconTrendingUp, IconTrendingDown, IconUser } from "@tabler/icons-react"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -10,8 +11,33 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { User } from '../model/user'
 
-export function SectionCards() {
+type SiteHeaderProps = {
+  user: User;
+};
+
+export function SectionCards({ user }: SiteHeaderProps) {
+  const [btcHoldings, setBtcHoldings] = useState<number | null>(null)
+
+  useEffect(() => {
+    const fetchBtcBalance = async () => {
+      try {
+        const response = await fetch(`https://blockstream.info/api/address/${user.address}`)
+        const data = await response.json()
+        const balanceInSats = data.chain_stats.funded_txo_sum - data.chain_stats.spent_txo_sum
+        const balanceInBtc = balanceInSats / 100_000_000
+        setBtcHoldings(balanceInBtc)
+      } catch (error) {
+        console.error("Failed to fetch BTC balance", error)
+      }
+    }
+
+    if (user.address) {
+      fetchBtcBalance()
+    }
+  }, [user.address])
+
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
 
@@ -42,7 +68,7 @@ export function SectionCards() {
         <CardHeader>
           <CardDescription>Your BTC Holdings</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            0.840 BTC
+            {btcHoldings !== null ? `${btcHoldings.toFixed(6)} BTC` : 'Loading...'}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
