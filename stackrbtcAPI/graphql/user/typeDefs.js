@@ -13,7 +13,11 @@ const typeDefs = gql`
     username: String!
     email: String!
     password: String!
+    encryptedPrivateKey: String
+    publicKey: String
+    address: String
   }
+
 
   type UserResponse {
     success: Boolean!
@@ -44,6 +48,7 @@ const typeDefs = gql`
   userId: ID!
   username: String!
   email: String!
+  address: String!
   }
 
   type Mutation {

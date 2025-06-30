@@ -56,6 +56,7 @@ export function LoginForm({
                         userId
                         username
                         email
+                        address
                     }
                 }
             }
